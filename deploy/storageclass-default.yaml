@@ -1,0 +1,14 @@
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: curvefs-sc
+provisioner: csi.curvefs.com
+allowVolumeExpansion: false
+reclaimPolicy: Delete
+parameters:
+  mdsAddr: ""
+  fsType: ""
+  s3Endpoint: ""
+  s3AccessKey: ""
+  s3SecretKey: ""
+  s3Bucket: ""

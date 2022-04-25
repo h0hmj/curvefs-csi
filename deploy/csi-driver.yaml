@@ -1,0 +1,11 @@
+apiVersion: storage.k8s.io/v1
+kind: CSIDriver
+metadata:
+  labels:
+    app.kubernetes.io/instance: curvefs-csi-driver
+    app.kubernetes.io/name: curvefs-csi-driver
+    app.kubernetes.io/version: master
+  name: csi.curvefs.com
+spec:
+  attachRequired: false
+  podInfoOnMount: false

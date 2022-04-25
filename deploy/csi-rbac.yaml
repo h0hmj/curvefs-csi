@@ -1,0 +1,81 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: curvefs
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: curvefs-csi-service-account
+  namespace: curvefs
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: curvefs-csi-cluster-role
+  namespace: curvefs
+rules:
+  - apiGroups: [ "" ]
+    resources: [ "persistentvolumes" ]
+    verbs: [ "get", "list", "watch", "create", "update", "delete", "patch" ]
+  - apiGroups: [ "" ]
+    resources: [ "persistentvolumeclaims" ]
+    verbs: [ "get", "list", "watch", "update", "patch" ]
+  - apiGroups: [ "storage.k8s.io" ]
+    resources: [ "storageclasses" ]
+    verbs: [ "get", "list", "watch" ]
+  - apiGroups: [ "" ]
+    resources: [ "nodes","pods" ]
+    verbs: [ "get", "list", "watch" ]
+  - apiGroups: [ "" ]
+    resources: [ "secrets" ]
+    verbs: [ "get", "list" ]
+  - apiGroups: [ "" ]
+    resources: [ "events" ]
+    verbs: [ "list", "watch", "create", "update", "patch" ]
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: curvefs-csi-cluster-role-binding
+  namespace: curvefs
+subjects:
+  - kind: ServiceAccount
+    name: curvefs-csi-service-account
+    namespace: curvefs
+roleRef:
+  kind: ClusterRole
+  name: curvefs-csi-cluster-role
+  apiGroup: rbac.authorization.k8s.io
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: curvefs-csi-role
+  namespace: curvefs
+rules:
+  - apiGroups: [ "" ]
+    resources: [ "endpoints" ]
+    verbs: [ "get", "watch", "list", "delete", "update", "create" ]
+  - apiGroups: [ "" ]
+    resources: [ "configmaps" ]
+    verbs: [ "get", "list", "create", "delete" ]
+  - apiGroups: [ "coordination.k8s.io" ]
+    resources: [ "leases" ]
+    verbs: [ "get", "watch", "list", "delete", "update", "create" ]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: curvefs-csi-role-binding
+  namespace: curvefs
+subjects:
+  - kind: ServiceAccount
+    name: curvefs-csi-service-account
+    namespace: curvefs
+roleRef:
+  kind: Role
+  name: curvefs-csi-role
+  apiGroup: rbac.authorization.k8s.io
+---
