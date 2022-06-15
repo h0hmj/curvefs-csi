@@ -12,3 +12,5 @@ parameters:
   s3AccessKey: ""
   s3SecretKey: ""
   s3Bucket: ""
+# mountOptions:
+#   - diskCache.diskCacheType=2

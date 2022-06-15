@@ -84,6 +84,9 @@ spec:
             - mountPath: /var/lib/kubelet/pods
               mountPropagation: Bidirectional
               name: mountpoint-dir
+            - mountPath: /curvefs/client/data/cache
+              mountPropagation: Bidirectional
+              name: curvefs-diskcache
       volumes:
         - hostPath:
             path: /var/lib/kubelet/plugins/csi.curvefs.com
@@ -97,4 +100,8 @@ spec:
             path: /var/lib/kubelet/pods
             type: Directory
           name: mountpoint-dir
+        - hostPath:
+            path: /data/curvefs-diskcache
+            type: Directory
+          name: curvefs-diskcache
 

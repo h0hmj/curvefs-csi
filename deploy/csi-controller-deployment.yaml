@@ -41,7 +41,7 @@ spec:
             - mountPath: /csi
               name: socket-dir
         - name: curvefs-driver
-          image: harbor.cloud.netease.com/curve/curvefs:csi-test-4
+          image: harbor.cloud.netease.com/curve/curvefs:csi-v1.0.0
           imagePullPolicy: IfNotPresent
           securityContext:
             privileged: true

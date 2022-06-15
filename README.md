@@ -30,12 +30,24 @@ The Curvefs CSI Driver implements the CSI specification for container orchestrat
     kubectl apply -f deploy/csi-controller-deployment.yaml
     kubectl apply -f deploy/csi-node-daemonset.yaml
     ```
-3. create storage class
+   attention: if you want to enable DiskCache, read the related section below
+3. create storage class and pvc
    ```bash
    # copy and fill in the blanks in storageclass-default.yaml
-   kubectl apply -f /path/to/sc.yaml
+   kubectl apply -f storageclass.yaml
+   # copy and modify the pvc-default.yaml
+   kubectl apply -f pvc.yaml
    ```
-4. now you can use this storageclass to create pvc and bind to a pod
+4. now you can bind this pvc to a pod
+
+#### DiskCache related
+
+what is DiskCache? A disk based cache used by client to increase the io performance
+of client.
+
+If you want to enable it:
+1. check out content in csi-node-daemonset-enable-cache.yaml to bind the cache dir on curvefs-csi-node to pod's /curvefs/client/data/cache
+2. add "diskCache.diskCacheType=2" or "diskCache.diskCacheType=1" to your mountOptions section of storageclass.yaml, 2 for read and write, 1 for read
 
 ## Build Status
 
@@ -47,6 +59,6 @@ The Curvefs CSI Driver implements the CSI specification for container orchestrat
 
 - more create/mount options support (require future curvefs support)
 - move sensitive info like s3 ak/sk to secret
-- subpath mount support
-- resource limitation of single mount point
-- quota(bytes) support
+- subpath mount support (require future curvefs support)
+- move every mount into a seperate pod, inspired by juicefs-csi
+- quota(bytes) support (require future curvefs support)

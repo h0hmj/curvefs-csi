@@ -19,6 +19,7 @@ package curvefsdriver
 import (
 	"context"
 	"github.com/container-storage-interface/spec/lib/go/csi"
+	"github.com/google/uuid"
 	"github.com/h0hmj/curvefs-csi/pkg/csicommon"
 	"github.com/h0hmj/curvefs-csi/pkg/util"
 	"google.golang.org/grpc/codes"
@@ -29,7 +30,8 @@ import (
 
 type nodeServer struct {
 	*csicommon.DefaultNodeServer
-	mounter mount.Interface
+	mounter     mount.Interface
+	mountRecord map[string]string // targetPath -> a uuid
 }
 
 func (ns *nodeServer) NodePublishVolume(
@@ -62,7 +64,9 @@ func (ns *nodeServer) NodePublishVolume(
 	}
 
 	curvefsMounter := NewCurvefsMounter()
-	err = curvefsMounter.MountFs(volumeID, targetPath, req.GetVolumeContext())
+	mountUUID := uuid.New().String()
+	err = curvefsMounter.MountFs(volumeID, targetPath, req.GetVolumeContext(),
+		req.GetVolumeCapability().GetMount(), mountUUID)
 	if err != nil {
 		return nil, status.Errorf(
 			codes.Internal,
@@ -81,6 +85,7 @@ func (ns *nodeServer) NodePublishVolume(
 			targetPath,
 		)
 	}
+	ns.mountRecord[targetPath] = mountUUID
 	return &csi.NodePublishVolumeResponse{}, nil
 }
 
@@ -104,7 +109,8 @@ func (ns *nodeServer) NodeUnpublishVolume(
 	}
 
 	curvefsMounter := NewCurvefsMounter()
-	err := curvefsMounter.UmountFs(targetPath)
+	mountUUID := ns.mountRecord[targetPath]
+	err := curvefsMounter.UmountFs(targetPath, mountUUID)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal,
 			"Failed to umount %s, err: %v",
@@ -121,7 +127,7 @@ func (ns *nodeServer) NodeUnpublishVolume(
 			targetPath,
 		)
 	}
-
+	delete(ns.mountRecord, targetPath)
 	return &csi.NodeUnpublishVolumeResponse{}, nil
 }
 

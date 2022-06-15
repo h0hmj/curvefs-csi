@@ -75,6 +75,7 @@ func NewNodeServer(d *CurvefsDriver) *nodeServer {
 	return &nodeServer{
 		DefaultNodeServer: csicommon.NewDefaultNodeServer(d.CSIDriver),
 		mounter:           mount.New(""),
+		mountRecord:       map[string]string{},
 	}
 }
 

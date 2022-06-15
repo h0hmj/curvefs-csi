@@ -18,8 +18,11 @@ package curvefsdriver
 
 import (
 	"fmt"
+	"github.com/container-storage-interface/spec/lib/go/csi"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"io/ioutil"
+	"os"
 	"os/exec"
 	"strconv"
 )
@@ -29,6 +32,7 @@ const (
 	defaultClientExampleConfPath = "/curvefs/conf/client.conf"
 	toolPath                     = "/curvefs/tools/sbin/curvefs_tool"
 	clientPath                   = "/curvefs/client/sbin/curve-fuse"
+	cacheDirPrefix               = "/curvefs/client/data/cache/"
 )
 
 type curvefsTool struct {
@@ -44,8 +48,14 @@ func (ct *curvefsTool) CreateFs(
 	capacity int64,
 	params map[string]string,
 ) error {
-	ct.validateCommonParams(params)
-	ct.validateCreateFsParams(params)
+	err := ct.validateCommonParams(params)
+	if err != nil {
+		return err
+	}
+	err = ct.validateCreateFsParams(params)
+	if err != nil {
+		return err
+	}
 	ct.toolParams["fsName"] = volumeID
 	// todo: current capacity is not working
 	// call curvefs_tool create-fs to create a fs
@@ -70,7 +80,10 @@ func (ct *curvefsTool) CreateFs(
 }
 
 func (ct *curvefsTool) DeleteFs(volumeID string, params map[string]string) error {
-	ct.validateCommonParams(params)
+	err := ct.validateCommonParams(params)
+	if err != nil {
+		return err
+	}
 	ct.toolParams["fsName"] = volumeID
 	ct.toolParams["noconfirm"] = "1"
 	// call curvefs_tool delete-fs to create a fs
@@ -163,8 +176,28 @@ func (cm *curvefsMounter) MountFs(
 	fsname string,
 	targetPath string,
 	params map[string]string,
+	mountOption *csi.VolumeCapability_MountVolume,
+	mountUUID string,
 ) error {
-	cm.validateMountFsParams(params)
+	err := cm.validateMountFsParams(params)
+	if err != nil {
+		return err
+	}
+	// mount options from storage class
+	// copy and create new conf file with mount options override
+	if mountOption != nil {
+		confPath, err := cm.applyMountFlags(
+			cm.mounterParams["conf"],
+			mountOption.MountFlags,
+			targetPath,
+			mountUUID,
+		)
+		if err != nil {
+			return err
+		}
+		cm.mounterParams["conf"] = confPath
+	}
+
 	cm.mounterParams["fsname"] = fsname
 	// call curve-fuse -o conf=/etc/curvefs/client.conf -o fsname=testfs \
 	//       -o fstype=s3  --mdsAddr=1.1.1.1 <mountpoint>
@@ -196,7 +229,7 @@ func (cm *curvefsMounter) MountFs(
 	return nil
 }
 
-func (cm *curvefsMounter) UmountFs(targetPath string) error {
+func (cm *curvefsMounter) UmountFs(targetPath string, mountUUID string) error {
 	umountFsCmd := exec.Command("umount", targetPath)
 	output, err := umountFsCmd.CombinedOutput()
 	if err != nil {
@@ -208,7 +241,63 @@ func (cm *curvefsMounter) UmountFs(targetPath string) error {
 			err,
 		)
 	}
+	// do cleanup, config file and cache dir
+	if mountUUID != "" {
+		confPath := defaultClientExampleConfPath + "." + mountUUID
+		cacheDir := cacheDirPrefix + mountUUID
+		go os.Remove(confPath)
+		go os.RemoveAll(cacheDir)
+	}
 	return nil
+}
+
+func (cm *curvefsMounter) applyMountFlags(
+	origConfPath string,
+	mountFlags []string,
+	targetPath string,
+	mountUUID string,
+) (string, error) {
+	confPath := defaultClientExampleConfPath + "." + mountUUID
+	// read orig conf and append mount flags, then write to new conf path
+	data, err := ioutil.ReadFile(origConfPath)
+	if err != nil {
+		return "", status.Errorf(
+			codes.Internal,
+			"applyMountFlag: failed to read conf %v",
+			origConfPath,
+			err,
+		)
+	}
+	cacheEnabled := false
+	data = append(data, "\n# begin of mount flags\n"...)
+	for _, flag := range mountFlags {
+		if flag == "diskCache.diskCacheType=2" || flag == "diskCache.diskCacheType=1" {
+			cacheEnabled = true
+		}
+		data = append(data, flag...)
+		data = append(data, "\n"...)
+	}
+	cacheDir := cacheDirPrefix + mountUUID
+	if cacheEnabled {
+		// overwrite cache dir config
+		data = append(data, "diskCache.cacheDir="+cacheDir+"\n"...)
+	}
+	data = append(data, "# end of mount flags\n"...)
+	err = ioutil.WriteFile(confPath, data, 0644)
+	if err != nil {
+		return "", status.Errorf(
+			codes.Internal,
+			"applyMountFlag: failed to write new conf %v",
+			confPath,
+			err,
+		)
+	}
+	if cacheEnabled {
+		if err := os.MkdirAll(cacheDir, 0777); err != nil {
+			return "", err
+		}
+	}
+	return confPath, nil
 }
 
 func (cm *curvefsMounter) validateMountFsParams(params map[string]string) error {
