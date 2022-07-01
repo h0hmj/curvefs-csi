@@ -6,7 +6,7 @@ The Curvefs CSI Driver implements the CSI specification for container orchestrat
 
 ## Prerequisites
 
-- Kubernetes 1.14+
+- Kubernetes 1.18+
 
 ## CSI Interface Implemented
 
