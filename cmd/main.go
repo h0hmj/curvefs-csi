@@ -21,8 +21,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	curvefsdriver "github.com/h0hmj/curvefs-csi/pkg/curvefs-driver"
-	"github.com/h0hmj/curvefs-csi/pkg/util"
+	curvefsdriver "github.com/opencurve/curvefs-csi/pkg/curvefs-driver"
+	"github.com/opencurve/curvefs-csi/pkg/util"
 	"k8s.io/klog"
 	"os"
 )

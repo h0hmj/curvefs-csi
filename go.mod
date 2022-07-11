@@ -1,4 +1,4 @@
-module github.com/h0hmj/curvefs-csi
+module github.com/opencurve/curvefs-csi
 
 go 1.14
 

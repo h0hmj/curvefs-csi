@@ -18,8 +18,8 @@ package curvefsdriver
 
 import (
 	"github.com/container-storage-interface/spec/lib/go/csi"
-	"github.com/h0hmj/curvefs-csi/pkg/csicommon"
-	"github.com/h0hmj/curvefs-csi/pkg/util"
+	"github.com/opencurve/curvefs-csi/pkg/csicommon"
+	"github.com/opencurve/curvefs-csi/pkg/util"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/klog"
