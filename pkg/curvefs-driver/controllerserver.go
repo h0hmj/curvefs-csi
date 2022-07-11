@@ -19,8 +19,8 @@ package curvefsdriver
 import (
 	"context"
 	"github.com/container-storage-interface/spec/lib/go/csi"
-	"github.com/h0hmj/curvefs-csi/pkg/csicommon"
-	"github.com/h0hmj/curvefs-csi/pkg/util"
+	"github.com/opencurve/curvefs-csi/pkg/csicommon"
+	"github.com/opencurve/curvefs-csi/pkg/util"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
