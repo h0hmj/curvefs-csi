@@ -1,6 +1,6 @@
 module github.com/opencurve/curvefs-csi
 
-go 1.14
+go 1.16
 
 require (
 	github.com/container-storage-interface/spec v1.6.0
