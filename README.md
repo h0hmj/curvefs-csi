@@ -51,9 +51,9 @@ If you want to enable it:
 
 ## Build Status
 
-| Curvefs CSI Driver Version | Curvefs Version Commit                    | Curvefs CSI Driver Image                          |
-|----------------------------|-------------------------------------------|---------------------------------------------------|
-| v1.0.0                     | c93730d4d0ba0e4b7843e30e384dd44640e4d547  | harbor.cloud.netease.com/curve/curvefs:csi-v1.0.0 |
+| Curvefs CSI Driver Version | Curvefs Version | Curvefs CSI Driver Image                          |
+|----------------------------|-----------------|---------------------------------------------------|
+| v1.0.0                     | v2.3.0-rc0      | harbor.cloud.netease.com/curve/curvefs:csi-v1.0.0 |
 
 ## Follow-up Work
 
