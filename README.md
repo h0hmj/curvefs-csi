@@ -49,6 +49,13 @@ If you want to enable it:
 1. check out content in csi-node-daemonset-enable-cache.yaml to bind the cache dir on curvefs-csi-node to pod's /curvefs/client/data/cache
 2. add "diskCache.diskCacheType=2" or "diskCache.diskCacheType=1" to your mountOptions section of storageclass.yaml, 2 for read and write, 1 for read
 
+Know Issue:
+
+With discache enabled (type=2, write), metadata in metadatasever will be newer than data in s3 storage,
+if the csi node pod crash but write cache is not fully uploaded to s3 storage,
+you may lose this part of data. Remount will crash, because you only have meta but without data (haven't been flushed to s3).
+
+
 ## Build Status
 
 | Curvefs CSI Driver Version | Curvefs Version | Curvefs CSI Driver Image                          |
